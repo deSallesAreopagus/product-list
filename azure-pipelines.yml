@@ -20,3 +20,22 @@ steps:
     yarn install
     yarn build
   displayName: 'yarn install and build'
+
+- script: |
+    docker build -t diegodesalles/product-list .
+  displayName: 'Build Docker image'
+
+- script: |
+    echo $(DOCKER_PW) | docker login -u $(DOCKER_LOGIN) --password-stdin
+    docker tag diegodesalles/product-list diegodesalles/product-list:latest
+    docker push diegodesalles/product-list:latest
+  displayName: 'Deploy to Docker Hub'
+
+- script: |
+    ssh -i $(SSH_PRIVATE_KEY) azureuser@$(AZURE_IP) << 'EOF'
+      sudo docker pull diegodesalles/product-list:latest
+      sudo docker stop product-list || true
+      sudo docker rm product-list || true
+      sudo docker run -d --name product-list --network microfrontend -p 3001:3001 diegodesalles/product-list:latest
+    EOF
+  displayName: 'Deploy to Azure VM'
