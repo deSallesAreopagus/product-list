@@ -19,6 +19,7 @@ export default defineConfig({
     minify: false
   },
   server: {
-    port: 3001
+    port: 3001,
+    cors: true
   }
 })
